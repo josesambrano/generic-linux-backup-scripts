@@ -4,3 +4,8 @@
 /composer.lock
 /composer.phar
 /config/*.yml
+/nbproject/private/
+/nbproject/
+*.json
+/config/database.json
+/config/
