@@ -12,9 +12,13 @@ namespace Pkj\LinuxGenericBackup;
 use Pkj\LinuxGenericBackup\Notifications\NotificationManager;
 use Pkj\LinuxGenericBackup\Notifications\NotificationManagerExtension;
 use Pkj\LinuxGenericBackup\Notifications\Pushover\PushoverExtension;
+use Pkj\LinuxGenericBackup\Proceso;
+use Pkj\LinuxGenericBackup\BackupRegistro;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
+
 
 class BackupHandler {
 
@@ -137,6 +141,18 @@ class BackupHandler {
             $taskResult = call_user_func_array($task, array($this));
             if (is_array($taskResult)) {
                 $createdFiles = array_merge($taskResult);
+
+                $proceso = new Proceso();
+                $proceso ->action ="created_mysql_backup";
+                $proceso->files=$createdFiles;
+                $proceso->process_type="back_mysql";
+                $size =0 ;
+                foreach($createdFiles as $file){
+                    $size += filesize($file);
+                }
+                $proceso ->size = $size;
+                $registro = new BackupRegistro();
+                $registro->saveProcess($proceso);
             }
         }
 
@@ -198,6 +214,8 @@ class BackupHandler {
         }
         $this->longNotificationMessage .= $msg . "\n";
         $this->output->writeln($msg);
+
+
     }
 
     /**
@@ -250,6 +268,7 @@ class BackupHandler {
         usort($files, array($this, 'sortByCreationDateDesc'));
 
         $backup_count = [];
+
         foreach($files as $file) {
 
             // Validation pattern, extremely important to not delete other files by mistake...
@@ -271,7 +290,22 @@ class BackupHandler {
                     $backup_count[$wp_name]++;
                     if ($backup_count[$wp_name] > $config['amount_of_backups']) {
                         $backup_count[$wp_name]--;
+                        $size =0 ;
+                        $size += filesize($file);
                         $this->doExec("rm -f $file");
+
+
+                        $proceso = new Proceso();
+                        $proceso ->action ="deleted_mysql_backup";
+                        $proceso->files=$file;
+                        $proceso->process_type="back_mysql";
+
+
+                        $proceso ->size = $size;
+                        $registro = new BackupRegistro();
+                        $registro->saveProcess($proceso);
+
+
                     } else {
                         $msg = "($wp_name) Keeping file $file";
                         $this->debug($msg);

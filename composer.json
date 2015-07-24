@@ -21,6 +21,8 @@
         "symfony/yaml": "2.5.*",
         "symfony/dependency-injection": "2.5.*",
         "symfony/config": "2.5.*",
-        "swiftmailer/swiftmailer": "5.2.*"
+        "swiftmailer/swiftmailer": "5.2.*",
+        "lichtner/fluentpdo": "dev-master"
+
     }
 }
